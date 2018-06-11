@@ -1,0 +1,13 @@
+{
+  "name": "natours",
+  "version": "1.0.0",
+  "description": "Tours",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "compile:sass": "node-sass ./sass/main.scss ./css/style.css -w"
+  },
+  "author": "",
+  "license": "Apache-2.0"
+}
