@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <script src="vue.js"></script>
+        <title>Testing</title>
+        <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: inherit;
+        }
+
+        html {
+            box-sizing: border-box;
+            font-size: 62.5%;
+        }
+
+        #exercise {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(400px, 1fr));
+            grid-row-gap: 3rem;
+            padding: 10rem;
+        }
+        .fighter {
+            display: grid;
+            grid-row-gap: 3rem;
+            grid-template-rows: repeat(2, 1fr);
+            justify-items: center;
+        }
+
+        .name {
+            grid-column: 1 / -1;
+            text-transform: uppercase;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .hpbar {
+            width: 80%;
+            text-align: center;
+            position: relative;
+
+        }
+
+        .hpbar__fore,
+        .hpbar__back,
+        .hpbar__text {
+            height: 100%;
+            position: absolute;
+        }
+        .hpbar__fore,
+        .hpbar__back {
+            top: 0;
+            left: 0;
+        }
+        .hpbar__fore {
+            z-index: 5;
+            width: 100%;
+            background-color: green;
+        }
+
+        .hpbar__back {
+            transition: all .2s;
+            width: 100%;
+            background-color: gray;
+        }
+
+        .hpbar__text {
+            top: .5rem;
+            left: calc(50% - 2rem);
+            color: white;
+            z-index: 10;
+            font-size: 2rem;
+        }
+
+        .gamecontrollers {
+            grid-column: 1 / -1;
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 4px rgba(0,0,0, .3);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .log {
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 4px rgba(0,0,0, .3);
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logElement {
+            
+            width: 80%;
+            font-size: 2rem;
+            background-color: gray;
+        }
+
+        .even {
+            background-color: orange;
+        }
+
+        .btn {
+            font-size: 2rem;
+            text-transform: uppercase;
+            padding: 1rem;
+            border-style: none;
+            border-radius: 4px;
+            transition: all .3s;
+            margin: 2rem 0;
+        }
+
+        .btn:hover {
+            box-shadow: 0 1px 4px rgba(0,0,0, .3);
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+        }
+
+        .btn:not(:last-child) {
+            margin-right: 2rem;
+        }
+
+    </style>
+    </head>
+    <body>
+        <div id="exercise">
+            <div class="player fighter">
+                <p class="name">You</p>
+                <div class="hpbar">
+                    <div class="hpbar__fore" :style="playWidth"></div>
+                    <div class="hpbar__back"></div>
+                    <div class="hpbar__text">{{playerHp}}</div>
+                </div>
+            </div>
+
+            <div class="monster fighter">
+                <p class="name">monster</p>
+                <div class="hpbar">
+                    <div class="hpbar__fore" :style="monWidth"></div>
+                    <div class="hpbar__back"></div>
+                    <div class="hpbar__text">{{monsterHp}}</div>
+                </div>
+            </div>
+
+            <div class="gamecontrollers">
+                <button class="btn btn-start" v-if="!started" @click="startGame">start new game</button>
+                <button class="btn btn-attack" v-if="started" @click="attack(10,10)" :disabled="playerHp == 0 || monsterHp == 0">attack</button>
+                <button class="btn btn-sattack" v-if="started" @click="attack(10,20)"  :disabled="playerHp == 0 || monsterHp == 0">special attack</button>
+                <button class="btn btn-heal" v-if="started" @click="heal"  :disabled="playerHp == 0 || monsterHp == 0">heal</button>
+                <button class="btn btn-give" v-if="started" @click="started = !started">give up</button>
+            </div>
+
+            <div class="log" v-if="log.length > 0">
+                <div class="logElement" v-for="(l, i) in log" :class="{even: i%2===0}"> {{l}}</div>
+            </div>
+        </div>
+
+
+        <script>
+        var vm = new Vue({
+        el: '#exercise',
+        data: {
+            started: false,
+            playerHp: 100,
+            monsterHp: 100,
+            log: [],
+        },
+        methods: {
+            startGame: function(){
+                this.started = true;
+                this.playerHp = 100;
+                this.monsterHp = 100;
+                this.log = [];
+            },
+            attack: function(pd, md) {
+                this.combat(this.calcDamage(pd), this.calcDamage(md));
+            },
+            heal: function() {
+                this.combat(-1*this.calcDamage(20), this.calcDamage(10));
+            },
+            combat: function(pd, md) {
+                this.playerHp = Math.min(Math.max(0, this.playerHp - pd), 100);
+                this.log.unshift("Player has taken " + pd + " damage");
+                this.monsterHp = Math.min(Math.max(0, this.monsterHp - md), 100);
+                this.log.unshift("Monster has taken " + md + " damage");
+            },
+            calcDamage: function(maxDamage) {
+                return Math.floor(Math.random() * maxDamage) + 1;
+            }
+        },
+        computed: {
+            monWidth: function() {
+                return {
+                    width: this.monsterHp + '%'
+                }
+            },
+            playWidth: function() {
+                return {
+                    width: this.playerHp + '%'
+                }
+            }
+        },
+        watch: {
+            monsterHp: function(value) {
+                if(value === 0) {
+                    alert("Wow you win!");
+                    this.startGame();
+                }
+            },
+            playerHp: function(value) {
+                if(value === 0) {
+                    alert("Wow you lose!");
+                    this.startGame();
+                }
+            }
+        }
+        });
+    </script>
+    </body>
+</html>
